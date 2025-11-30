@@ -29,13 +29,33 @@ def get_redis():
 
 def save_user_question(user_id, question):
     redis = get_redis()
-
     key = f"user:{user_id}:questions"
-    question_number = redis.llen(key) + 1
-
-    redis.rpush(key, question)
-    return question_number
+    redis.set(key, question)
 
 
-if __name__ == "__main__":
-    get_redis()
+def get_last_question(user_id):
+    redis = get_redis()
+    key = f"user:{user_id}:questions"
+    last_question = redis.get(key)
+    return last_question
+
+
+def save_user_score(user_id):
+    redis = get_redis()
+    key = f"user{user_id}:score"
+    current_score = redis.get(key)
+    if not current_score:
+        score = 1
+    else:
+        score = int(current_score) + 1
+        redis.set(key, score)
+
+
+def get_user_score(user_id):
+    redis = get_redis()
+    key = f"user{user_id}:score"
+    score = redis.get(key)
+    if score is None:
+        score = 0
+        return score
+    return score
