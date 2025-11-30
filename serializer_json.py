@@ -24,23 +24,30 @@ def get_raw_quiz_files():
 def serializer_answer_question(contents):
     results = []
     for text in contents:
-        question_match = re.search(
-            r"Вопрос\s\d*:(.*?)(Ответ:)",
-            text,
-            flags=re.DOTALL
-        )
-        answer_match = re.search(
-            r"Ответ:(.*?)(Комментарий:)",
-            text,
-            flags=re.DOTALL
-        )
-        if not question_match or not answer_match:
-            continue
+        blocks = re.split(r"(?=Вопрос\s*\d*:)", text)
 
-        results.append({
-            "question": question_match.group(1).strip(),
-            "answer": answer_match.group(1).strip()
-        })
+        for block in blocks:
+            if not block.strip().startswith("Вопрос"):
+                continue
+
+            question_match = re.search(
+                r"Вопрос\s*\d*:\s*(.*?)(?=Ответ\s*:)",
+                block,
+                flags=re.DOTALL
+            )
+
+            answer_match = re.search(
+                r"Ответ\s*:\s*(.*)",
+                block,
+                flags=re.DOTALL
+            )
+            if not question_match or not answer_match:
+                continue
+
+            results.append({
+                "question": question_match.group(1).strip(),
+                "answer": answer_match.group(1).strip()
+            })
     return results
 
 
@@ -62,17 +69,18 @@ def get_questions_answers():
 
 def parse_answer(raw_answer: str) -> dict:
     correct_match = re.search(
-        r"Ответ:\s*(.+?)(?:\n{2,}|$)",
+        r"\s*(.*?)(?=\nЗачет:|\nИсточник:|$)",
         raw_answer,
         flags=re.DOTALL
     )
     accepted_match = re.search(
-        r"Зачет:\s*(.+?)(?:\n{2,}|$)",
+        r"Зачет:\s*(.*?)(?=\nИсточник:|$)",
         raw_answer,
         flags=re.DOTALL
     )
+
     explanation_match = re.search(
-        r"(Источник:.*)",
+        r"Источник:\s*(.*)",
         raw_answer,
         flags=re.DOTALL
     )
