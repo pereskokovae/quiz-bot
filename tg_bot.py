@@ -33,18 +33,27 @@ logger = logging.getLogger(__name__)
 NEW_QUESTION, USER_ANSWER = range(2)
 
 
-def start(update: Update, context: CallbackContext):
+def build_keyboard():
     custom_keyboard = [
         ['Новый вопрос', 'Счет'],
         ['Сдаться']
     ]
-    reply_markup = ReplyKeyboardMarkup(custom_keyboard)
+    return ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
 
+
+def send_message(update, text, keyboard=None):
+    update.message.reply_text(
+        text,
+        reply_markup=keyboard
+    )
+
+
+def start(update: Update, context: CallbackContext):
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="Привет! Я бот для викторины.\n "
-        "Нажмите 'Новый воспрос' для того чтобы начать игру.",
-        reply_markup=reply_markup
+        text="""Привет! Я бот для викторины.\n
+        Нажмите 'Новый воспрос' для того чтобы начать игру.""",
+        reply_markup=build_keyboard()
         )
     return NEW_QUESTION
 
@@ -55,21 +64,18 @@ def handle_new_question_request(update: Update, context: CallbackContext, quiz_m
     random_question = random.choice(list(quiz_map.keys()))
     save_user_question(user_id, random_question)
 
-    update.message.reply_text(
-        random_question
-    )
+    send_message(update, random_question)
     return USER_ANSWER
 
 
-def handle_solution_attempt(update: Update, context: CallbackContext, quiz_map):
+def handle_solution_attempt(update: Update, context: CallbackContext, quiz_map, keyboard):
     user_id = update.message.from_user.id
 
     last_question = get_last_question(user_id)
 
     if not last_question:
-        update.message.reply_text(
-            'Сначала нажмите "Новый вопрос"',
-        )
+        text = 'Сначала нажмите "Новый вопрос"'
+        send_message(update, text, keyboard)
         return NEW_QUESTION
 
     parsed = parse_answer(quiz_map[last_question])
@@ -84,42 +90,38 @@ def handle_solution_attempt(update: Update, context: CallbackContext, quiz_map):
     )
     if is_correct:
         save_user_score(user_id)
-        update.message.reply_text(
-            f"Верно!\n\n{parsed['explanation']}"
-        )
+        text = f"Верно!\n\n{parsed['explanation']}"
+        send_message(update, text, keyboard)
         return NEW_QUESTION
     else:
-        update.message.reply_text(
-            "Неверно! Попробуйте ещё"
-        )
+        text = "Неверно! Попробуйте ещё"
+        send_message(update, text)
         return USER_ANSWER
 
 
-def handle_score(update: Update, context: CallbackContext):
+def handle_score(update: Update, context: CallbackContext, keyboard):
     user_id = update.message.from_user.id
     score = get_user_score(user_id)
 
-    update.message.reply_text(
-        f"Ваш счет: {score}"
-    )
+    text = f"Ваш счет: {score}"
+    send_message(update, text, keyboard)
     return NEW_QUESTION
 
 
-def handle_surrender_and_new_question(update: Update, context: CallbackContext, quiz_map):
+def handle_surrender_and_new_question(update: Update, context: CallbackContext, quiz_map, keyboard):
     user_id = update.message.from_user.id
     last_question = get_last_question(user_id)
 
     if not last_question:
-        update.message.reply_text(
-            'У вас нет активного вопроса,\nнажмите "Новый вопрос"',
-        )
+        text = 'У вас нет активного вопроса,\nнажмите "Новый вопрос"'
+        send_message(update, text, keyboard)
         return NEW_QUESTION
 
     parsed = parse_answer(quiz_map[last_question])
-    update.message.reply_text(
-        f"Правильный ответ:\n{parsed['correct_answer']}\n\n"
-        f"{parsed['explanation']}"
-    )
+
+    text = f"""Правильный ответ:\n{parsed['correct_answer']}
+        \n\n{parsed['explanation']}"""
+    send_message(update, text, keyboard)
     return handle_new_question_request(update, context, quiz_map)
 
 
@@ -136,6 +138,7 @@ def main():
     dispatcher = updater.dispatcher
 
     quiz_map = get_questions_answers()
+    keyboard = build_keyboard()
 
     conversation_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
@@ -152,26 +155,39 @@ def main():
                     Filters.regex(r"^Сдаться$"),
                     partial(
                         handle_surrender_and_new_question,
-                        quiz_map=quiz_map
+                        quiz_map=quiz_map,
+                        keyboard=keyboard
                         )
                 ),
                 MessageHandler(
                     Filters.regex(r"^Счет$"),
-                    handle_score
+                    partial(
+                        handle_score,
+                        keyboard=keyboard
+                        )
                 )],
             USER_ANSWER: [
                 MessageHandler(
                     Filters.regex(r"^Сдаться$"),
                     partial(
                         handle_surrender_and_new_question,
-                        quiz_map=quiz_map
+                        quiz_map=quiz_map,
+                        keyboard=keyboard
+                        )
+                ),
+                MessageHandler(
+                    Filters.regex(r"^Счет$"),
+                    partial(
+                        handle_score,
+                        keyboard=keyboard
                         )
                 ),
                 MessageHandler(
                     Filters.text & ~Filters.command,
                     partial(
                         handle_solution_attempt,
-                        quiz_map=quiz_map
+                        quiz_map=quiz_map,
+                        keyboard=keyboard
                         )
                 )]
         },
