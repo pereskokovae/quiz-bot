@@ -120,4 +120,5 @@ dmypy.json
 #Pycharm IDE
 .idea
 quiz_questions.json
+media
 
