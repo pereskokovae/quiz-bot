@@ -14,7 +14,7 @@ from redis_client import (
     )
 from serializer import (
     get_questions_answers,
-    parse_answer,
+    parsed_answer,
     normalize_answer
     )
 
@@ -37,15 +37,12 @@ def build_keyboard():
 
 def send_message(vk_api, user_id, text, keyboard):
     random_id = random.randint(1, 1000)
-    try:
-        vk_api.messages.send(
-            user_id=user_id,
-            message=text,
-            keyboard=keyboard,
-            random_id=random_id
-        )
-    except Exception as e:
-        logging.error(f"Ошибка при отправке сообщения пользователю {e}")
+    vk_api.messages.send(
+        user_id=user_id,
+        message=text,
+        keyboard=keyboard,
+        random_id=random_id
+    )
 
 
 def handle_new_question_request(vk_api, user_id, quiz_map):
@@ -69,7 +66,7 @@ def handle_surrender_and_new_question(vk_api, user_id, quiz_map, keyboard):
         send_message(vk_api, user_id, text, keyboard)
         return
 
-    parsed = parse_answer(quiz_map[last_question])
+    parsed = parsed_answer(quiz_map[last_question])
     text = f"""Правильный ответ:\n{parsed['correct_answer']}
         \n\n{parsed['explanation']}"""
     send_message(vk_api, user_id, text, keyboard)
@@ -84,7 +81,7 @@ def handle_solution_attempt(vk_api, user_id, text, quiz_map, keyboard):
         send_message(vk_api, user_id, text, keyboard)
         return
 
-    parsed = parse_answer(quiz_map[last_question])
+    parsed = parsed_answer(quiz_map[last_question])
 
     normalized_user = normalize_answer(text)
     normalized_correct = normalize_answer(parsed['correct_answer'])
@@ -127,7 +124,7 @@ def main():
     )
 
     load_dotenv()
-    api_key = os.environ['API_KEY_VK_BOT']
+    api_key = os.environ['VK_BOT_API_KEY']
 
     vk_session = vk.VkApi(token=api_key)
     vk_api = vk_session.get_api()
@@ -139,7 +136,10 @@ def main():
 
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-            handle_vk_message(vk_api, event, keyboard)
+            try:
+                handle_vk_message(vk_api, event, keyboard)
+            except Exception as e:
+                logging.error(e)
 
 
 if __name__ == '__main__':

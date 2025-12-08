@@ -21,7 +21,7 @@ from redis_client import (
     )
 from serializer import (
     get_questions_answers,
-    parse_answer,
+    parsed_answer,
     normalize_answer
     )
 
@@ -73,7 +73,7 @@ def handle_solution_attempt(update: Update, context: CallbackContext, quiz_map, 
         update.message.reply_text(update, text, keyboard)
         return NEW_QUESTION
 
-    parsed = parse_answer(quiz_map[last_question])
+    parsed = parsed_answer(quiz_map[last_question])
 
     normalized_user = normalize_answer(update.message.text)
     normalized_correct = normalize_answer(parsed['correct_answer'])
@@ -112,7 +112,7 @@ def handle_surrender_and_new_question(update: Update, context: CallbackContext, 
         update.message.reply_text(update, text, keyboard)
         return NEW_QUESTION
 
-    parsed = parse_answer(quiz_map[last_question])
+    parsed = parsed_answer(quiz_map[last_question])
 
     text = f"""Правильный ответ:\n{parsed['correct_answer']}
         \n\n{parsed['explanation']}"""

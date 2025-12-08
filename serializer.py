@@ -40,7 +40,7 @@ def parse_raw_quiz_files():
 
 
 def serializer_answer_question(contents):
-    results = []
+    questions_with_answers = []
     for text in contents:
         blocks = re.split(r"(?=Вопрос\s*\d*:)", text)
 
@@ -62,11 +62,11 @@ def serializer_answer_question(contents):
             if not question_match or not answer_match:
                 continue
 
-            results.append({
+            questions_with_answers.append({
                 "question": question_match.group(1).strip(),
                 "answer": answer_match.group(1).strip()
             })
-    return results
+    return questions_with_answers
 
 
 def get_questions_answers():
@@ -85,7 +85,7 @@ def get_questions_answers():
     return quiz_map
 
 
-def parse_answer(raw_answer: str) -> dict:
+def parsed_answer(raw_answer: str) -> dict:
     correct_match = re.search(
         r"\s*(.*?)(?=\nЗачет:|\nИсточник:|$)",
         raw_answer,
