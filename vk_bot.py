@@ -12,7 +12,7 @@ from redis_client import (
     save_user_score,
     get_user_score
     )
-from serializer_json import (
+from serializer import (
     get_questions_answers,
     parse_answer,
     normalize_answer
