@@ -24,9 +24,7 @@ pip install -r requirements.txt
 Перед запуском создайте файл `.env` в корне проекта и добавьте туда ваши ключи и токены:
 ```bash
 API_KEY_TG_BOT=токен_вашего_тг_бота
-REDIS_HOST=ваш_хост
-REDIS_PORT=ваш_порт
-REDIS_PASSWORD=токен_вашего_redis
+REDIS_URL=redis://:PASSWORD@HOST:PORT/0
 API_KEY_VK_BOT=токен_вашего_вк_бота
 ```
 #### Как получить
@@ -35,9 +33,7 @@ API_KEY_VK_BOT=токен_вашего_вк_бота
 | ------------- | ------------- |
 | API_KEY_TG_BOT | токен вашего Telegram бота, чтобы его получить, создайте бота в [@BotFather](https://telegram.me/BotFather).  |
 | API_KEY_VK_BOT | токен вашего VK бота, полученный в настройках группы во вкладке "Работа с API" --> "Создать ключ доступа".  |
-| REDIS_HOST | адрес сервера Redis (например, localhost или IP-адрес)|
-| REDIS_PORT | порт, на котором запущен Redis|
-| REDIS_PASSWORD | пароль, если настроена аутентификация в Redis|
+| REDIS_URL | ваш url в базе данных Redis|
 
 ## Запуск проекта
 1. Склонируйте репозиторий
