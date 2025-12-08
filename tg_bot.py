@@ -41,13 +41,6 @@ def build_keyboard():
     return ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
 
 
-def send_message(update, text, keyboard=None):
-    update.message.reply_text(
-        text,
-        reply_markup=keyboard
-    )
-
-
 def start(update: Update, context: CallbackContext):
     context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -64,7 +57,9 @@ def handle_new_question_request(update: Update, context: CallbackContext, quiz_m
     random_question = random.choice(list(quiz_map.keys()))
     save_user_question(user_id, random_question)
 
-    send_message(update, random_question)
+    update.message.reply_text(
+        random_question
+    )
     return USER_ANSWER
 
 
@@ -75,7 +70,7 @@ def handle_solution_attempt(update: Update, context: CallbackContext, quiz_map, 
 
     if not last_question:
         text = 'Сначала нажмите "Новый вопрос"'
-        send_message(update, text, keyboard)
+        update.message.reply_text(update, text, keyboard)
         return NEW_QUESTION
 
     parsed = parse_answer(quiz_map[last_question])
@@ -91,11 +86,11 @@ def handle_solution_attempt(update: Update, context: CallbackContext, quiz_map, 
     if is_correct:
         save_user_score(user_id)
         text = f"Верно!\n\n{parsed['explanation']}"
-        send_message(update, text, keyboard)
+        update.message.reply_text(update, text, keyboard)
         return NEW_QUESTION
     else:
         text = "Неверно! Попробуйте ещё"
-        send_message(update, text)
+        update.message.reply_text(update, text)
         return USER_ANSWER
 
 
@@ -104,7 +99,7 @@ def handle_score(update: Update, context: CallbackContext, keyboard):
     score = get_user_score(user_id)
 
     text = f"Ваш счет: {score}"
-    send_message(update, text, keyboard)
+    update.message.reply_text(update, text, keyboard)
     return NEW_QUESTION
 
 
@@ -114,14 +109,14 @@ def handle_surrender_and_new_question(update: Update, context: CallbackContext, 
 
     if not last_question:
         text = 'У вас нет активного вопроса,\nнажмите "Новый вопрос"'
-        send_message(update, text, keyboard)
+        update.message.reply_text(update, text, keyboard)
         return NEW_QUESTION
 
     parsed = parse_answer(quiz_map[last_question])
 
     text = f"""Правильный ответ:\n{parsed['correct_answer']}
         \n\n{parsed['explanation']}"""
-    send_message(update, text, keyboard)
+    update.message.reply_text(update, text, keyboard)
     return handle_new_question_request(update, context, quiz_map)
 
 
@@ -132,7 +127,7 @@ def main():
     )
 
     load_dotenv()
-    api_key = os.environ['API_KEY_TG_BOT']
+    api_key = os.environ['TG_BOT_API_KEY']
 
     updater = Updater(api_key, use_context=True)
     dispatcher = updater.dispatcher
