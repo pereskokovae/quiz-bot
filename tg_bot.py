@@ -19,7 +19,7 @@ from redis_client import (
     save_user_score,
     get_user_score
     )
-from serializer import (
+from quiz_parser import (
     get_questions_answers,
     parsed_answer,
     normalize_answer

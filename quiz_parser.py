@@ -7,9 +7,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 
-def parse_raw_quiz_files():
-    load_dotenv()
-
+def get_quiz_directory(env_path):
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--path',
@@ -20,21 +18,19 @@ def parse_raw_quiz_files():
     args, _ = parser.parse_known_args()
 
     cli_path = args.path
-    env_path = os.getenv("QUIZ_PATH", "quiz_questions/")
 
     selected_path = cli_path or env_path
-    quiz_questions_path = Path(selected_path)
+    return Path(selected_path)
 
+
+def parse_raw_quiz_files(quiz_questions_path):
     contents = []
     for filename in os.listdir(quiz_questions_path):
         file_path = os.path.join(quiz_questions_path, filename)
 
         if os.path.isfile(file_path):
-            try:
-                with open(file_path, 'r', encoding='KOI8-R') as file:
-                    contents.append(file.read())
-            except Exception as e:
-                print(f"Не удалось прочитать файл {filename}: {e}")
+            with open(file_path, 'r', encoding='KOI8-R') as file:
+                contents.append(file.read())
 
     return contents
 
@@ -123,7 +119,11 @@ def normalize_answer(user_answer: str):
 
 
 def main():
-    contents = parse_raw_quiz_files()
+    load_dotenv()
+
+    env_path = os.getenv("QUIZ_PATH", "quiz_questions/")
+    quiz_questions_path = get_quiz_directory(env_path)
+    contents = parse_raw_quiz_files(quiz_questions_path)
     serialized_quiz = serializer_answer_question(contents)
 
     with open('quiz_questions.json', 'w', encoding='utf-8') as file:
