@@ -55,7 +55,7 @@ def handle_new_question_request(update: Update, context: CallbackContext, quiz_m
     user_id = update.message.from_user.id
 
     random_question = random.choice(list(quiz_map.keys()))
-    save_user_question(user_id, random_question)
+    save_user_question(user_id, random_question, platform='tg')
 
     update.message.reply_text(
         random_question
@@ -66,7 +66,7 @@ def handle_new_question_request(update: Update, context: CallbackContext, quiz_m
 def handle_solution_attempt(update: Update, context: CallbackContext, quiz_map, keyboard):
     user_id = update.message.from_user.id
 
-    last_question = get_last_question(user_id)
+    last_question = get_last_question(user_id, platform='tg')
 
     if not last_question:
         text = 'Сначала нажмите "Новый вопрос"'
@@ -84,7 +84,7 @@ def handle_solution_attempt(update: Update, context: CallbackContext, quiz_map, 
         or (parsed['accepted_answer'] and normalized_user == normalized_accepted)
     )
     if is_correct:
-        save_user_score(user_id)
+        save_user_score(user_id, platform='tg')
         text = f"Верно!\n\n{parsed['explanation']}"
         update.message.reply_text(update, text, keyboard)
         return NEW_QUESTION
@@ -96,7 +96,7 @@ def handle_solution_attempt(update: Update, context: CallbackContext, quiz_map, 
 
 def handle_score(update: Update, context: CallbackContext, keyboard):
     user_id = update.message.from_user.id
-    score = get_user_score(user_id)
+    score = get_user_score(user_id, platform='tg')
 
     text = f"Ваш счет: {score}"
     update.message.reply_text(update, text, keyboard)
@@ -105,7 +105,7 @@ def handle_score(update: Update, context: CallbackContext, keyboard):
 
 def handle_surrender_and_new_question(update: Update, context: CallbackContext, quiz_map, keyboard):
     user_id = update.message.from_user.id
-    last_question = get_last_question(user_id)
+    last_question = get_last_question(user_id, platform='tg')
 
     if not last_question:
         text = 'У вас нет активного вопроса,\nнажмите "Новый вопрос"'

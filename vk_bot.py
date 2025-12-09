@@ -47,19 +47,19 @@ def send_message(vk_api, user_id, text, keyboard):
 
 def handle_new_question_request(vk_api, user_id, quiz_map):
     random_question = random.choice(list(quiz_map.keys()))
-    save_user_question(user_id, random_question)
+    save_user_question(user_id, platform='vk', random_question)
 
     send_message(vk_api, user_id, random_question, keyboard=None)
 
 
 def handle_score(vk_api, user_id, keyboard):
-    score = get_user_score(user_id)
+    score = get_user_score(user_id, platform='vk')
     text = f"Ваш счет: {score}"
     send_message(vk_api, user_id, text, keyboard)
 
 
 def handle_surrender_and_new_question(vk_api, user_id, quiz_map, keyboard):
-    last_question = get_last_question(user_id)
+    last_question = get_last_question(user_id, platform='vk')
 
     if not last_question:
         text = 'У вас нет активного вопроса,\nнажмите "Новый вопрос"'
@@ -74,7 +74,7 @@ def handle_surrender_and_new_question(vk_api, user_id, quiz_map, keyboard):
 
 
 def handle_solution_attempt(vk_api, user_id, text, quiz_map, keyboard):
-    last_question = get_last_question(user_id)
+    last_question = get_last_question(user_id, platform='vk')
 
     if not last_question:
         text = 'Сначала нажмите "Новый вопрос"'
@@ -92,7 +92,7 @@ def handle_solution_attempt(vk_api, user_id, text, quiz_map, keyboard):
         or (parsed['accepted_answer'] and normalized_user == normalized_accepted)
     )
     if is_correct:
-        save_user_score(user_id)
+        save_user_score(user_id, platform='vk')
         text = f"Верно!\n\n{parsed['explanation']}",
         send_message(vk_api, user_id, text, keyboard)
     else:

@@ -14,19 +14,19 @@ def connect_to_redis(redis_url):
     )
 
 
-def save_user_question(user_id, question):
-    key = f"user:{user_id}:questions"
+def save_user_question(user_id, platform, question):
+    key = f"{platform}user:{user_id}:questions"
     connect_to_redis.set(key, question)
 
 
-def get_last_question(user_id):
-    key = f"user:{user_id}:questions"
+def get_last_question(user_id, platform):
+    key = f"{platform}user:{user_id}:questions"
     last_question = connect_to_redis.get(key)
     return last_question
 
 
-def save_user_score(user_id):
-    key = f"user{user_id}:score"
+def save_user_score(user_id, platform):
+    key = f"{platform}user{user_id}:score"
     current_score = connect_to_redis.get(key)
     if not current_score:
         score = 1
@@ -35,8 +35,8 @@ def save_user_score(user_id):
         connect_to_redis.set(key, score)
 
 
-def get_user_score(user_id):
-    key = f"user:{user_id}:score"
+def get_user_score(user_id, platform):
+    key = f"{platform}user:{user_id}:score"
     score = connect_to_redis.get(key)
     if score is None:
         score = 0
