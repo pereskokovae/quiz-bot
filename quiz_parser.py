@@ -1,26 +1,9 @@
 import json
 import re
 import os
-import argparse
 
 from pathlib import Path
 from dotenv import load_dotenv
-
-
-def get_quiz_directory(env_path):
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--path',
-        '-p',
-        help="Path to folder with quiz question files",
-        default=None
-        )
-    args, _ = parser.parse_known_args()
-
-    cli_path = args.path
-
-    selected_path = cli_path or env_path
-    return Path(selected_path)
 
 
 def parse_raw_quiz_files(quiz_questions_path):
@@ -122,8 +105,7 @@ def main():
     load_dotenv()
 
     env_path = os.getenv("QUIZ_PATH", "quiz_questions/")
-    quiz_questions_path = get_quiz_directory(env_path)
-    contents = parse_raw_quiz_files(quiz_questions_path)
+    contents = parse_raw_quiz_files(Path(env_path))
     serialized_quiz = serializer_answer_question(contents)
 
     with open('quiz_questions.json', 'w', encoding='utf-8') as file:
