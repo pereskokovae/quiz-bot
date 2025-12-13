@@ -1,7 +1,6 @@
 import redis
 import os
 import logging
-import functools
 from dotenv import load_dotenv
 
 
@@ -53,9 +52,4 @@ if __name__ == "__main__":
     load_dotenv()
 
     redis_url = os.getenv('REDIS_URL')
-    redis_connection = connect_to_redis(redis_url)
-
-    save_question = functools.partial(save_user_question, redis_connection)
-    get_question = functools.partial(get_last_question, redis_connection)
-    save_score = functools.partial(save_user_score, redis_connection)
-    get_score = functools.partial(get_user_score, redis_connection)
+    connect_to_redis(redis_url)
